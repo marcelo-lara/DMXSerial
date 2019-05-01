@@ -20,15 +20,13 @@
 //            without using the Arduino Serial (HardwareSerial) class to avoid ISR implementation conflicts.
 // 01.12.2011 include file and extension changed to work with the Arduino 1.0 environment
 // - - - - -
-
 #include <DMXSerial.h>
-#define DMX_USE_PORT1
 
 // Constants for demo program
 
-const int RedPin =    13;  // PWM output pin for Red Light.
-const int GreenPin =  12;  // PWM output pin for Green Light.
-const int BluePin =   11;  // PWM output pin for Blue Light.
+const int RedPin =    12;  // PWM output pin for Red Light.
+const int GreenPin =  11;  // PWM output pin for Green Light.
+const int BluePin =   10;  // PWM output pin for Blue Light.
 
 // The color fading pattern
 
@@ -45,43 +43,58 @@ int BlueNow = 0;
 int state = 0;
 
 void setup() {
-  DMXSerial.init(DMXController, 2);
+  DMXSerial.init(DMXController,2);
+
+  Serial.begin(115200);
+  Serial.println("awaiting data..");
 
   pinMode(RedPin,   OUTPUT); // sets the digital pin as output
   pinMode(GreenPin, OUTPUT);
   pinMode(BluePin,  OUTPUT);
+  //pinMode(LED_BUILTIN, OUTPUT);
+  //digitalWrite(LED_BUILTIN, LOW);
 } // setup
 
 
 // loop through the rainbow colors 
 void loop() {
-  RedLevel = RedList[state];
-  GreenLevel = GreenList[state];
-  BlueLevel = BlueList[state];
-  
-  if ((RedLevel == RedNow) && (GreenLevel == GreenNow) && (BlueLevel == BlueNow)) {
-    state += 1;
-    if (state == 6)
-      state = 0;
-
-  } else {
-    DMXSerial.write(1, 128);
-
-    if (RedNow < RedLevel)  RedNow++; 
-    if (RedNow > RedLevel)  RedNow--; 
-  //  DMXSerial.write(2, RedNow);
-    analogWrite(RedPin,   RedNow); 
-
-    if (GreenNow < GreenLevel)  GreenNow++; 
-    if (GreenNow > GreenLevel)  GreenNow--; 
-    //DMXSerial.write(3, GreenNow);
-    analogWrite(GreenPin, GreenNow); 
-
-    if (BlueNow < BlueLevel)  BlueNow++; 
-    if (BlueNow > BlueLevel)  BlueNow--; 
-    DMXSerial.write(4, BlueNow);
-    analogWrite(BluePin,  BlueNow); 
-  } // if
-
-  delayMicroseconds(2000); // wait a little bit
+  while (Serial.available() > 0) {
+    serialBuffer[serialPos]=Serial.read();
+    switch (serialPos){
+      
+      case 0: //await startByte
+        if(serialBuffer[0]==startByte)
+          serialPos=1;
+        break;
+      
+      case 33: //expect endByte, otherwise drop packet
+        serialPos=0;
+        if(serialBuffer[33]==endByte){
+          Serial.print("dmx> ");
+          for (int i = 1; i < 32; i++)
+          {
+            Serial.print(serialBuffer[i], HEX);
+            Serial.print(" ");
+            DMXSerial.write(i, serialBuffer[i]);
+          }
+          Serial.println();
+        }else{
+          Serial.println("malformed packet.. drop");
+        }
+        break;
+      
+      default:
+        serialPos++;
+        break;
+      }
+  }
 } // loop
+
+#define startByte 0x2F // "/"
+#define endByte   0x5C // "\"
+
+byte serialBuffer[34];
+int  serialPos=0;
+int  lastBuffer=0;
+void serialRead(){
+}

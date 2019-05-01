@@ -21,22 +21,24 @@
 
 // Constants for demo program
 
-const int RedPin =    9;  // PWM output pin for Red Light.
-const int GreenPin =  6;  // PWM output pin for Green Light.
-const int BluePin =   5;  // PWM output pin for Blue Light.
+const int RedPin =    12;  // PWM output pin for Red Light.
+const int GreenPin =  11;  // PWM output pin for Green Light.
+const int BluePin =   10;  // PWM output pin for Blue Light.
 
-#define RedDefaultLevel   100
-#define GreenDefaultLevel 200
-#define BlueDefaultLevel  255
+#define RedDefaultLevel   0
+#define GreenDefaultLevel 0
+#define BlueDefaultLevel  0
 
 void setup () {
   DMXSerial.init(DMXReceiver);
   
   // set some default values
-  DMXSerial.write(1, 80);
-  DMXSerial.write(2, 0);
-  DMXSerial.write(3, 0);
+  DMXSerial.write(1, 255);
+  DMXSerial.write(2, 255);
+  DMXSerial.write(3, 255);
   
+  pinMode(LED_BUILTIN, OUTPUT);
+
   // enable pwm outputs
   pinMode(RedPin,   OUTPUT); // sets the digital pin as output
   pinMode(GreenPin, OUTPUT);
@@ -49,12 +51,14 @@ void loop() {
   unsigned long lastPacket = DMXSerial.noDataSince();
   
   if (lastPacket < 5000) {
+    digitalWrite(LED_BUILTIN, LOW);    
     // read recent DMX values and set pwm levels 
     analogWrite(RedPin,   DMXSerial.read(1));
     analogWrite(GreenPin, DMXSerial.read(2));
     analogWrite(BluePin,  DMXSerial.read(3));
 
   } else {
+    digitalWrite(LED_BUILTIN, HIGH);
     // Show pure red color, when no data was received since 5 seconds or more.
     analogWrite(RedPin,   RedDefaultLevel);
     analogWrite(GreenPin, GreenDefaultLevel);

@@ -20,15 +20,13 @@
 //            without using the Arduino Serial (HardwareSerial) class to avoid ISR implementation conflicts.
 // 01.12.2011 include file and extension changed to work with the Arduino 1.0 environment
 // - - - - -
-
 #include <DMXSerial.h>
-#define DMX_USE_PORT1
 
 // Constants for demo program
 
-const int RedPin =    13;  // PWM output pin for Red Light.
-const int GreenPin =  12;  // PWM output pin for Green Light.
-const int BluePin =   11;  // PWM output pin for Blue Light.
+const int RedPin =    12;  // PWM output pin for Red Light.
+const int GreenPin =  11;  // PWM output pin for Green Light.
+const int BluePin =   10;  // PWM output pin for Blue Light.
 
 // The color fading pattern
 
@@ -65,16 +63,14 @@ void loop() {
       state = 0;
 
   } else {
-    DMXSerial.write(1, 128);
-
     if (RedNow < RedLevel)  RedNow++; 
     if (RedNow > RedLevel)  RedNow--; 
-  //  DMXSerial.write(2, RedNow);
+    DMXSerial.write(1, RedNow);
     analogWrite(RedPin,   RedNow); 
 
     if (GreenNow < GreenLevel)  GreenNow++; 
     if (GreenNow > GreenLevel)  GreenNow--; 
-    //DMXSerial.write(3, GreenNow);
+    DMXSerial.write(3, GreenNow);
     analogWrite(GreenPin, GreenNow); 
 
     if (BlueNow < BlueLevel)  BlueNow++; 

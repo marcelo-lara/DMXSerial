@@ -1,0 +1,7 @@
+{
+    "port": "COM10",
+    "board": "arduino:avr:mega",
+    "sketch": "dmxpoc_mega_master\\dmxpoc_mega_master.ino",
+    "programmer": "AVRISP mkII",
+    "configuration": "cpu=atmega2560"
+}
